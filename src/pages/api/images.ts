@@ -6,6 +6,7 @@ export type GalleryImage = {
   filename: string;
   thumbnailUrl: string;
   fullUrl: string;
+  mediumUrl: string;
   modified: number;
 };
 
@@ -27,7 +28,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     filename: f.filename,
     modified: f.modified,
     thumbnailUrl: `/images/thumbs/${f.filename}`,
-    fullUrl: `/images/full/${f.filename}`
+    fullUrl: `/images/full/${f.filename}`,
+    mediumUrl: `/images/medium/${f.filename}`
   }));
 
   res.status(200).json({

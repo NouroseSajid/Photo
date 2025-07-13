@@ -1,16 +1,14 @@
 const logs = [];
-const clients = [];
+const clients = new Set(); // Using Set instead of Array for automatic deduplication
 
 function addLog(msg) {
-  const timestamp = new Date().toLocaleTimeString();
+  const timestamp = new Date().toISOString();
   const fullMsg = `[${timestamp}] ${msg}`;
   logs.push(fullMsg);
   if (logs.length > 50) logs.shift();
-  for (const client of clients) {
-    try {
-      client.send(JSON.stringify({ type: 'log', msg: fullMsg }));
-    } catch {}
-  }
+  console.log(fullMsg);
+  // Send to all connected clients
+  broadcast({ type: 'log', msg: fullMsg });
 }
 
 function getLogs() {
@@ -18,25 +16,46 @@ function getLogs() {
 }
 
 function broadcast(data) {
-  for (const client of clients) {
-    try {
-      client.send(JSON.stringify(data));
-    } catch {}
-  }
+  const message = JSON.stringify(data);
+  let sentCount = 0;
+  clients.forEach(client => {
+    if (client.readyState === client.OPEN) {
+      try {
+        client.send(message);
+        sentCount++;
+      } catch (error) {
+        console.error('Broadcast error:', error);
+        clients.delete(client);
+      }
+    } else {
+      clients.delete(client);
+    }
+  });
+  console.log(`Broadcast to ${sentCount} clients`);
+  return sentCount;
 }
 
 function registerClient(ws) {
-  clients.push(ws);
-  logs.forEach(log => ws.send(JSON.stringify({ type: 'log', msg: log })));
-  ws.on('close', () => {
-    const index = clients.indexOf(ws);
-    if (index !== -1) clients.splice(index, 1);
+  clients.add(ws);
+  // Send existing logs
+  logs.forEach(log => {
+    if (ws.readyState === ws.OPEN) {
+      ws.send(JSON.stringify({ type: 'log', msg: log }));
+    }
   });
+  ws.on('close', () => {
+    clients.delete(ws);
+  });
+}
+
+function getClientCount() {
+  return clients.size;
 }
 
 module.exports = {
   addLog,
   getLogs,
   broadcast,
-  registerClient
+  registerClient,
+  getClientCount
 };

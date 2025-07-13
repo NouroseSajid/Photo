@@ -6,15 +6,33 @@ export default function ConsolePage() {
   const [logs, setLogs] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:3030');
+  const wsRef = useRef<WebSocket | null>(null);
+  const connectWebSocket = () => {
+    const ws = new WebSocket(`ws://${window.location.hostname}:3030`);
+    wsRef.current = ws;
+    ws.onopen = () => console.log('WebSocket connected!');
+    ws.onclose = () => {
+      console.log('WebSocket disconnected. Reconnecting...');
+      setTimeout(connectWebSocket, 3000);
+    };
+    ws.onerror = (error) => console.error('WebSocket error:', error);
     ws.onmessage = (msg) => {
-      const data = JSON.parse(msg.data);
-      if (data.type === 'log') {
-        setLogs((prev) => [...prev, data.msg]);
+      try {
+        const data = JSON.parse(msg.data);
+        console.log('Received WS message:', data);
+        if (data.type === 'log') {
+          setLogs((prev) => [...prev, data.msg]);
+        }
+      } catch (e) {
+        console.error('Error parsing WS message:', e);
       }
     };
-    return () => ws.close();
+  };
+  useEffect(() => {
+    connectWebSocket();
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
   }, []);
 
   useEffect(() => {
