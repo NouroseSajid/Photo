@@ -18,6 +18,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const filenames = filesParam.split(',');
+
+  if (filenames.length === 1) {
+    const filename = filenames[0];
+    const fullPath = path.join(process.cwd(), 'public/images/full', filename);
+
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const mimeType = require('mime-types').lookup(filename) || 'application/octet-stream';
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    const fileStream = fs.createReadStream(fullPath);
+    fileStream.pipe(res);
+
+    fileStream.on('error', (err) => {
+      console.error('Error streaming file:', err);
+      res.status(500).json({ error: 'Error downloading file' });
+    });
+    return;
+  }
+
   const archive = archiver('zip', { zlib: { level: 9 } });
 
   res.setHeader('Content-Type', 'application/zip');

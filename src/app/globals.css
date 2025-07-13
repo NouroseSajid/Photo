@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Swiper Navigation Arrows Glow Effect */
+.swiper-button-next,
+.swiper-button-prev {
+  color: white !important; /* Ensure arrows are visible */
+  text-shadow: 0 0 10px rgba(0, 0, 255, 0.8), /* Blue glow */
+               0 0 20px rgba(0, 0, 255, 0.6), 
+               0 0 30px rgba(0, 0, 255, 0.4) !important;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  text-shadow: 0 0 15px rgba(0, 0, 255, 1), /* Stronger blue glow on hover */
+               0 0 25px rgba(0, 0, 255, 0.8),
+               0 0 35px rgba(0, 0, 255, 0.6) !important;
+}

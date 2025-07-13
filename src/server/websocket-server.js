@@ -54,14 +54,14 @@ chokidar.watch(fullDir)
 
     if (!fs.existsSync(thumbPath)) {
       tasks.push(
-        sharp(fullPath).resize({ width: 400 }).toFile(thumbPath)
+        sharp(fullPath).rotate().resize({ width: 400 }).withMetadata({ orientation: 1 }).toFile(thumbPath)
           .then(() => messages.push('✅ Converted to thumbnail'))
           .catch(err => messages.push(`❌ Thumbnail error: ${err.message}`))
       );
     }
     if (!fs.existsSync(mediumPath)) {
       tasks.push(
-        sharp(fullPath).resize({ width: 1200 }).toFile(mediumPath)
+        sharp(fullPath).rotate().resize({ width: 1200 }).withMetadata({ orientation: 1 }).toFile(mediumPath)
           .then(() => messages.push('✅ Converted to medium image'))
           .catch(err => messages.push(`❌ Medium image error: ${err.message}`))
       );
@@ -70,8 +70,7 @@ chokidar.watch(fullDir)
     if (tasks.length > 0) await Promise.all(tasks);
 
     addLog(messages.join(' | '));
-    broadcast({ type: 'refresh' });
-    addLog(`Sent refresh to ${getClientCount()} clients.`);
+    debouncedBroadcastRefresh();
   })
   .on('unlink', (fullPath) => {
     const filename = path.basename(fullPath);
@@ -89,9 +88,18 @@ chokidar.watch(fullDir)
     }
 
     addLog(messages.join(' | '));
-    broadcast({ type: 'refresh' });
-    addLog(`Sent refresh to ${getClientCount()} clients.`);
+    debouncedBroadcastRefresh();
   });
+
+// Debounce function for broadcasting refresh
+let refreshTimeout;
+const debouncedBroadcastRefresh = () => {
+  clearTimeout(refreshTimeout);
+  refreshTimeout = setTimeout(() => {
+    broadcast({ type: 'refresh' });
+    addLog(`Sent debounced refresh to ${getClientCount()} clients.`);
+  }, 1000); // 1 second debounce time
+};
 
 // --- Graceful Shutdown ---
 
