@@ -52,10 +52,4 @@ function getClientCount() {
   return clients.size;
 }
 
-module.exports = {
-  addLog,
-  getLogs,
-  broadcast,
-  registerClient,
-  getClientCount
-};
+export { addLog, getLogs, broadcast, registerClient, getClientCount };

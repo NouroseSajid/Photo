@@ -7,8 +7,14 @@ export default function ConsolePage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
+  // Optionally use a token from env (replace with your method of providing the token)
+  const WS_AUTH_TOKEN = process.env.NEXT_PUBLIC_WS_AUTH_TOKEN || '';
   const connectWebSocket = useCallback(() => {
-    const ws = new WebSocket(`ws://${window.location.hostname}:3030`);
+    let wsUrl = `ws://${window.location.hostname}:3030`;
+    if (WS_AUTH_TOKEN) {
+      wsUrl += `?token=${encodeURIComponent(WS_AUTH_TOKEN)}`;
+    }
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     ws.onopen = () => console.log('WebSocket connected!');
     ws.onclose = () => {
@@ -22,12 +28,14 @@ export default function ConsolePage() {
         console.log('Received WS message:', data);
         if (data.type === 'log') {
           setLogs((prev) => [...prev, data.msg]);
+        } else if (data.type === 'error' && data.message) {
+          setLogs((prev) => [...prev, `⚠️ Server error: ${data.message}`]);
         }
       } catch (e) {
         console.error('Error parsing WS message:', e);
       }
     };
-  }, []);
+  }, [WS_AUTH_TOKEN]);
   useEffect(() => {
     connectWebSocket();
     return () => {

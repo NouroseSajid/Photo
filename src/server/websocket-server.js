@@ -105,7 +105,7 @@ wss.on('connection', (ws, request) => {
   // Rate limiting state
   ws._rateLimit = { count: 0, windowStart: Date.now() };
 
-  ws.on('close', (code, reason) => {
+  ws.on('close', (code) => {
     addLog(`Client ${clientIp} disconnected (${code}). Total clients: ${wss.clients.size}`);
   });
 
@@ -196,7 +196,7 @@ class ImageProcessor {
     }
   }
 
-  async generateImage(inputPath, outputPath, width, format = null) {
+  async generateImage(inputPath, outputPath, width) {
     return this.processWithRetry(async () => {
       let pipeline = sharp(inputPath)
         .rotate() // Auto-rotate based on EXIF
