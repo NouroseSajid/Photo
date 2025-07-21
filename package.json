@@ -6,17 +6,16 @@
     "dev": "npm-run-all -p dev-next start-websocket",
     "dev-next": "next dev --turbopack",
     "start-websocket": "node src/server/websocket-server.js",
-    "watch-images": "node src/scripts/watch-images.js",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "generate-thumbs": "node src/scripts/generate-thumbs.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "archiver": "^7.0.1",
     "chokidar": "^4.0.3",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.0",
     "mime-types": "^3.0.1",
     "next": "15.3.5",
     "next-auth": "^4.24.11",

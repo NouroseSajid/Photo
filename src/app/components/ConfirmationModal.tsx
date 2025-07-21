@@ -27,7 +27,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
 
 const styles = {
   overlay: {
-    position: 'fixed' as 'fixed',
+    position: 'fixed' as React.CSSProperties['position'],
     top: 0,
     left: 0,
     right: 0,
@@ -43,7 +43,7 @@ const styles = {
     padding: '2rem',
     borderRadius: '8px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    textAlign: 'center' as 'center',
+    textAlign: 'center' as React.CSSProperties['textAlign'],
     zIndex: 1001, // Ensure modal content is above overlay
   },
   buttonContainer: {

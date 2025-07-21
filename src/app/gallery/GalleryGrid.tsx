@@ -40,7 +40,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
         const rowSpan = Math.ceil(displayHeight / 10) + 2; // +2 for padding/gap adjustment
 
-        console.log(`Image: ${img.filename}, Original: ${naturalWidth}x${naturalHeight}, DisplayHeight: ${displayHeight.toFixed(2)}, RowSpan: ${rowSpan}`);
+        // Removed debug console.log for production cleanliness
 
         const isSelected = selectedImages.includes(img.filename);
         let pressTimer: NodeJS.Timeout | null = null;

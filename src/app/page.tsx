@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
-import Image from 'next/image';
+import { useEffect, useState, useCallback } from 'react';
 import { GalleryImage } from '@/pages/api/images';
 import ImageSwiperModal from './gallery/ImageSwiperModal';
 import GalleryGrid from './gallery/GalleryGrid';
@@ -15,7 +14,7 @@ export default function GalleryPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
-  const [showRefreshBanner, setShowRefreshBanner] = useState(false);
+  const [showRefreshBanner] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const fetchImages = useCallback(async () => {

@@ -31,12 +31,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           await fs.unlink(filePath);
           console.log(`Successfully deleted: ${filePath}`);
-        } catch (error: any) {
-          if (error.code === 'ENOENT') {
+        } catch (error: unknown) {
+          if (typeof error === 'object' && error && 'code' in error && (error as { code?: string }).code === 'ENOENT') {
             console.warn(`File not found, skipping: ${filePath}`);
           } else {
             console.error(`Failed to delete ${filePath}:`, error);
-            errors.push(`Failed to delete ${imageName}: ${error.message}`);
+            errors.push(`Failed to delete ${imageName}: ${typeof error === 'object' && error && 'message' in error ? (error as { message?: string }).message : String(error)}`);
           }
         }
       }

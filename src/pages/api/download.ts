@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import archiver from 'archiver';
 import path from 'path';
 import fs from 'fs';
+import mime from 'mime-types';
 
 // Required for large files (disable 4MB default API limit)
 export const config = {
@@ -27,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'File not found' });
     }
 
-    const mimeType = require('mime-types').lookup(filename) || 'application/octet-stream';
+    const mimeType = mime.lookup(filename) || 'application/octet-stream';
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 

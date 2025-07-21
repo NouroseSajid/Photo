@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 export default function ConsolePage() {
   const [logs, setLogs] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
-  const connectWebSocket = () => {
+  const connectWebSocket = useCallback(() => {
     const ws = new WebSocket(`ws://${window.location.hostname}:3030`);
     wsRef.current = ws;
     ws.onopen = () => console.log('WebSocket connected!');
@@ -27,13 +27,13 @@ export default function ConsolePage() {
         console.error('Error parsing WS message:', e);
       }
     };
-  };
+  }, []);
   useEffect(() => {
     connectWebSocket();
     return () => {
       if (wsRef.current) wsRef.current.close();
     };
-  }, []);
+  }, [connectWebSocket]);
 
   useEffect(() => {
     const el = containerRef.current;

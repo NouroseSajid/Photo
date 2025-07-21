@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
@@ -17,15 +17,18 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(onClose, 300);
+  }, [onClose]);
+
   useEffect(() => {
     setIsVisible(isOpen);
     if (isOpen) {
-      document.body.classList.add('overflow-hidden');
       setTimeout(() => firstFocusableElementRef.current?.focus(), 100);
     } else {
-      document.body.classList.remove('overflow-hidden');
     }
-    return () => document.body.classList.remove('overflow-hidden');
+    return () => {};
   }, [isOpen]);
 
   // Close drawer on ESC key
@@ -35,7 +38,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleClose]);
 
   // Focus trap for accessibility
   useEffect(() => {
@@ -57,26 +60,21 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
       }
     };
     drawerRef.current.addEventListener('keydown', handleTabKey);
-    return () => drawerRef.current?.removeEventListener('keydown', handleTabKey);
+    const drawerNode = drawerRef.current;
+    return () => drawerNode?.removeEventListener('keydown', handleTabKey);
   }, [isVisible]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 300);
-  };
 
   // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (drawerRef.current && 
-          !drawerRef.current.contains(e.target as Node) &&
-          isVisible) {
+      const drawerNode = drawerRef.current;
+      if (drawerNode && !drawerNode.contains(e.target as Node) && isVisible) {
         handleClose();
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isVisible]);
+  }, [isVisible, handleClose]);
 
   return (
     <div 

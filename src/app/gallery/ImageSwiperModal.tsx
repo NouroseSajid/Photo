@@ -1,11 +1,6 @@
 'use client';
 // UI constants
-const BUTTON_BASE =
-  'bg-white/80 hover:bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 transition-all duration-300';
 const DOWNLOAD_ICON = '/icons/Download.svg';
-const SELECTED_COLOR = 'border-blue-500';
-const UNSELECTED_COLOR = 'border-gray-300';
-const DOWNLOAD_SELECTED_COLOR = 'border-green-600';
 
 import { GalleryImage } from '@/pages/api/images';
 import React, { useState, useEffect } from 'react';
@@ -152,7 +147,7 @@ const ImageSwiperModal: React.FC<ImageSwiperModalProps> = ({
               className="w-full h-full"
             >
               {images.map((img, idx) => {
-                const isSelected = selectedImages.includes(img.filename);
+                // Removed unused isSelected variable
                 return (
                   <SwiperSlide
                     key={idx}

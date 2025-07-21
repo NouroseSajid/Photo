@@ -17,7 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // No pagination: return all images
 
   const fullDir = path.join(process.cwd(), 'public/images/full');
-  const thumbDir = path.join(process.cwd(), 'public/images/thumbs');
 
   const files = fs.readdirSync(fullDir)
     .filter(f => /\.(jpe?g|png|webp)$/i.test(f))
@@ -30,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const paginatedFiles = files; // All files
 
   const images = await Promise.all(paginatedFiles.map(async (f) => {
-    const thumbPath = path.join(thumbDir, f.filename);
     const originalPath = path.join(fullDir, f.filename); // Path to the original image
     let width = 400, height = 300; // Default values
     try {
