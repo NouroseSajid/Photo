@@ -1,15 +1,1 @@
-TypeError: Cannot read properties of undefined (reading 'length')
-    at GalleryPage (https://nourose.com/_next/static/chunks/src_app_196bb790._.js:1477:28)
-    at ClientPageRoot (https://nourose.com/_next/static/chunks/node_modules_next_dist_1a6ee436._.js:2061:50)
-
-
-src/app/page.tsx (219:17) @ GalleryPage
-
-
-  217 |
-  218 |       <PullToRefresh onRefresh={() => fetchImages(0)}>
-> 219 |         {images.length === 0 && (
-      |                 ^
-  220 |           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 text-center py-4 bg-gray-100 rounded-lg text-gray-700 text-2xl font-semibold z-50">
-  221 |             No images yet.
-  222 |           </div>
+No new errors reported in stacktree.txt after the last fix.

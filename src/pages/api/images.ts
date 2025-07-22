@@ -22,7 +22,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const folder = req.query.folder as string | undefined;
 
   try {
-    const foldersToRead = folder ? [folder] : await fs.readdir(base);
+    let foldersToRead: string[];
+    if (folder) {
+      foldersToRead = [folder];
+    } else {
+      const entries = await fs.readdir(base, { withFileTypes: true });
+      foldersToRead = entries.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
+    }
 
     const allFiles = [];
     for (const f of foldersToRead) {
