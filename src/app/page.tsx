@@ -70,6 +70,7 @@ export default function GalleryPage() {
   const [hasMore, setHasMore] = useState(true);
   const [folders, setFolders] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [galleryGridKey, setGalleryGridKey] = useState(0);
 
   const fetchImages = useCallback(async (newPage = 0, folder = selectedFolder) => {
     const res = await fetch(`/api/images?page=${newPage}&folder=${folder || ''}`)
@@ -205,6 +206,7 @@ export default function GalleryPage() {
         fetchImages(0, selectedFolder); // Refresh current folder
         setSelectedImages([]);
         setIsMultiSelectMode(false);
+        setGalleryGridKey(prevKey => prevKey + 1); // Increment key to force re-render
       } else {
         const errorData = await res.json();
         toast.error(`Failed to move images: ${errorData.error || 'Unknown error'}`, { id: 'move' });
@@ -307,6 +309,7 @@ export default function GalleryPage() {
           </div>
         )}
         <GalleryGrid
+          key={galleryGridKey}
           images={images}
           selectedImages={selectedImages}
           isMultiSelectMode={isMultiSelectMode}

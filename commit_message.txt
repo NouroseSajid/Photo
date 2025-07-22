@@ -1,0 +1,5 @@
+Fix: Image download functionality
+
+- Updated client-side to include folder in download URL.
+- Adjusted server-side download API to correctly handle paths.
+- Added logging for debugging purposes.

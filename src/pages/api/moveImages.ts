@@ -33,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       for (const type of imageTypes) {
         const oldPath = path.join(baseDir, type, currentFolder, filename);
         const newPath = path.join(baseDir, type, targetFolder, filename);
+        console.log(`Attempting to move ${type} image from ${oldPath} to ${newPath}`);
 
         try {
           // Ensure target folder exists
