@@ -69,8 +69,9 @@ export default function GalleryPage() {
   const fetchImages = useCallback(async (newPage = 0, folder = selectedFolder) => {
     const res = await fetch(`/api/images?page=${newPage}&folder=${folder || ''}`)
     const data = await res.json();
-    setImages(prev => newPage === 0 ? data.images : [...prev, ...data.images]);
-    setHasMore(data.images.length > 0);
+    const newImages = data.images || []; // Ensure newImages is an array
+    setImages(prev => newPage === 0 ? newImages : [...prev, ...newImages]);
+    setHasMore(newImages.length > 0);
   }, [selectedFolder]);
 
   const fetchFolders = async () => {
