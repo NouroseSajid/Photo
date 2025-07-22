@@ -121,8 +121,11 @@ const ImageSwiperModal: React.FC<ImageSwiperModalProps> = ({
               ) : (
                 <button
                   onClick={() => {
-                    const filename = images[activeIndex]?.filename;
-                    if (filename) window.location.href = `/api/download?files=${filename}`;
+                    const imageToDownload = images[activeIndex];
+                    if (imageToDownload) {
+                      console.log('Downloading single image:', imageToDownload.folder, imageToDownload.filename);
+                      window.location.href = `/api/download?files=${imageToDownload.folder}/${imageToDownload.filename}`;
+                    }
                   }}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 hover:scale-105"
                   title="Download This Image"

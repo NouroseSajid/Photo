@@ -114,7 +114,9 @@ export default function GalleryPage() {
   const handleDownloadSelected = () => {
     if (selectedImages.length === 0) return toast.error('No images selected');
     toast.loading('Building ZIP…', { id: 'zip' });
-    window.location.href = `/api/download?files=${selectedImages.map(img => img.filename).join(',')}`;
+    const filesToDownload = selectedImages.map(img => `${img.folder}/${img.filename}`);
+    console.log('Downloading multiple images:', filesToDownload);
+    window.location.href = `/api/download?files=${filesToDownload.join(',')}`;
     setTimeout(() => toast.dismiss('zip'), 2000);
   };
 

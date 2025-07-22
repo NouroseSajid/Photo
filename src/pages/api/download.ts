@@ -13,18 +13,20 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const filesParam = req.query.files;
+  console.log('Received filesParam:', filesParam);
 
   if (!filesParam || typeof filesParam !== 'string') {
     return res.status(400).json({ error: 'Missing ?files=filename1.jpg,filename2.jpg' });
   }
 
-  const filenames = filesParam.split(',').map(f => path.basename(f));
+  const filenames = filesParam.split(',');
 
   if (filenames.length === 1) {
     const filename = filenames[0];
     const fullPath = path.join(process.cwd(), 'public/images/full', filename);
 
     if (!fs.existsSync(fullPath)) {
+      console.error('File not found at path:', fullPath);
       return res.status(404).json({ error: 'File not found' });
     }
 
@@ -51,11 +53,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   filenames.forEach((filename) => {
     const fullPath = path.join(process.cwd(), 'public/images/full', filename);
+    console.log('Attempting to add to archive from path:', fullPath);
 
     if (fs.existsSync(fullPath)) {
       archive.file(fullPath, { name: filename });
     } else {
-      console.warn(`❌ File not found: ${filename}`);
+      console.warn(`❌ File not found: ${fullPath}`);
     }
   });
 
