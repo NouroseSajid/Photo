@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing ?files=filename1.jpg,filename2.jpg' });
   }
 
-  const filenames = filesParam.split(',');
+  const filenames = filesParam.split(',').map(f => path.basename(f));
 
   if (filenames.length === 1) {
     const filename = filenames[0];

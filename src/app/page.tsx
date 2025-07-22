@@ -1,9 +1,54 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+// Simple pull-to-refresh wrapper for mobile
+import React, { useRef } from 'react';
+
+function PullToRefresh({ onRefresh, children }: { onRefresh: () => Promise<void>, children: React.ReactNode }) {
+  const startY = useRef<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY === 0) {
+      startY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (startY.current !== null) {
+      const distance = e.touches[0].clientY - startY.current;
+      if (distance > 80 && !isRefreshing) {
+        setIsRefreshing(true);
+        onRefresh().finally(() => {
+          setIsRefreshing(false);
+        });
+        startY.current = null;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    startY.current = null;
+  };
+
+  return (
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ width: '100%' }}
+    >
+      {isRefreshing && (
+        <div className="w-full text-center py-2 text-blue-500 font-semibold animate-pulse">🔄 Reloading…</div>
+      )}
+      {children}
+    </div>
+  );
+}
+import Footer from '@/app/components/Footer';
 import { GalleryImage } from '@/pages/api/images';
 import ImageSwiperModal from './gallery/ImageSwiperModal';
-import GalleryGrid from './gallery/GalleryGrid';
+import { GalleryGrid } from './gallery/GalleryGrid';
 import MultiSelectToolbar from './gallery/MultiSelectToolbar';
 import RefreshBanner from './gallery/RefreshBanner';
 import ConfirmationModal from './components/ConfirmationModal'; // Re-using the modal
@@ -16,16 +61,41 @@ export default function GalleryPage() {
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [showRefreshBanner] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [folders, setFolders] = useState<string[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
 
-  const fetchImages = useCallback(async () => {
-    const res = await fetch(`/api/images`);
+  const fetchImages = useCallback(async (newPage = 0, folder = selectedFolder) => {
+    const res = await fetch(`/api/images?page=${newPage}&folder=${folder || ''}`)
     const data = await res.json();
-    setImages(data.images);
-  }, []);
+    setImages(prev => newPage === 0 ? data.images : [...prev, ...data.images]);
+    setHasMore(data.images.length > 0);
+  }, [selectedFolder]);
+
+  const fetchFolders = async () => {
+    const res = await fetch('/api/folders');
+    const data = await res.json();
+    console.log('Fetched folders:', data.folders);
+    setFolders(data.folders);
+  };
 
   useEffect(() => {
-    fetchImages();
+    fetchFolders();
+    fetchImages(0);
   }, [fetchImages]);
+
+  const handleLoadMore = () => {
+    const newPage = page + 1;
+    setPage(newPage);
+    fetchImages(newPage);
+  };
+
+  const handleFolderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedFolder(e.target.value);
+    setPage(0);
+    fetchImages(0, e.target.value);
+  };
 
   const handleImageSelect = (filename: string) => {
     setSelectedImages((prevSelected) =>
@@ -36,12 +106,10 @@ export default function GalleryPage() {
   };
 
   const handleDownloadSelected = () => {
-    if (selectedImages.length > 0) {
-      const filenames = selectedImages.join(',');
-      window.location.href = `/api/download?files=${filenames}`;
-    } else {
-      toast.error('Please select images to download.');
-    }
+    if (selectedImages.length === 0) return toast.error('No images selected');
+    toast.loading('Building ZIP…', { id: 'zip' });
+    window.location.href = `/api/download?files=${selectedImages.join(',')}`;
+    setTimeout(() => toast.dismiss('zip'), 2000);
   };
 
   const handleDeleteSelected = async () => {
@@ -62,7 +130,7 @@ export default function GalleryPage() {
     });
 
     if (res.ok) {
-      fetchImages();
+      fetchImages(0);
       setSelectedImages([]);
       setIsMultiSelectMode(false);
       toast.success('Images deleted successfully');
@@ -72,16 +140,23 @@ export default function GalleryPage() {
     setIsDeleteModalOpen(false);
   };
 
-  // Close dialog on Escape key
+  // Keyboard shortcuts for multi-select and deselect
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setIsMultiSelectMode(true);
+        setSelectedImages(images.map(i => i.filename));
+      }
       if (e.key === 'Escape') {
+        setIsMultiSelectMode(false);
+        setSelectedImages([]);
         setSelectedImageIndex(null);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [images]);
 
   // Handle browser back button for closing the dialog
   useEffect(() => {
@@ -104,32 +179,60 @@ export default function GalleryPage() {
   }, [selectedImageIndex]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 flex flex-col" style={{ height: '100vh' }}>
+    <div className="min-h-screen bg-white p-4 flex flex-col">
       <Toaster />
       <RefreshBanner show={showRefreshBanner} />
 
-      <h1 className="text-3xl font-bold text-center mb-6 text-black">Gentsefeest 2025</h1>
+      {!isMultiSelectMode && (
+        <div className="sm:hidden w-full text-center text-gray-500 text-sm mb-4">
+          Long press an image for multi-select
+        </div>
+      )}
 
-      <MultiSelectToolbar
-        isMultiSelectMode={isMultiSelectMode}
-        selectedImagesCount={selectedImages.length}
-        onStartMultiSelect={() => setIsMultiSelectMode(true)}
-        onCancel={() => {
-          setIsMultiSelectMode(false);
-          setSelectedImages([]);
-        }}
-        onDownload={handleDownloadSelected}
-        onDelete={handleDeleteSelected}
-      />
+      <div className="flex justify-between items-center mb-4">
+        <MultiSelectToolbar
+          isMultiSelectMode={isMultiSelectMode}
+          selectedImagesCount={selectedImages.length}
+          onStartMultiSelect={() => setIsMultiSelectMode(true)}
+          onCancel={() => {
+            setIsMultiSelectMode(false);
+            setSelectedImages([]);
+          }}
+          onDownload={handleDownloadSelected}
+          onDelete={handleDeleteSelected}
+        />
+        <div className="flex items-center pr-4">
+          <select onChange={handleFolderChange} value={selectedFolder || ''} className="border rounded p-2 text-gray-900 bg-white">
+            <option value="">All Folders</option>
+            {folders.map(folder => (
+              <option key={folder} value={folder}>{folder}</option>
+            ))}
+          </select>
+          {selectedFolder && <span className="ml-4 text-lg font-semibold text-gray-900">{selectedFolder}</span>}
+        </div>
+      </div>
 
-      <GalleryGrid
-        images={images}
-        selectedImages={selectedImages}
-        isMultiSelectMode={isMultiSelectMode}
-        onImageSelect={handleImageSelect}
-        onImageClick={setSelectedImageIndex}
-        setIsMultiSelectMode={setIsMultiSelectMode}
-      />
+      <PullToRefresh onRefresh={() => fetchImages(0)}>
+        {images.length === 0 && (
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 text-center py-4 bg-gray-100 rounded-lg text-gray-700 text-2xl font-semibold z-50">
+            No images yet.
+          </div>
+        )}
+        <GalleryGrid
+          images={images}
+          selectedImages={selectedImages}
+          isMultiSelectMode={isMultiSelectMode}
+          onImageSelect={handleImageSelect}
+          onImageClick={setSelectedImageIndex}
+          setIsMultiSelectMode={setIsMultiSelectMode}
+        />
+      </PullToRefresh>
+
+      {hasMore && (
+        <button onClick={handleLoadMore} className="bg-blue-500 text-white p-2 rounded mt-4">
+          Load More
+        </button>
+      )}
 
       <ImageSwiperModal
         open={selectedImageIndex !== null}
@@ -149,6 +252,9 @@ export default function GalleryPage() {
         onConfirm={confirmDelete}
         message={`Are you sure you want to delete ${selectedImages.length} image(s)?`}
       />
+
+      {/* FOOTER ONLY ON THIS PAGE */}
+      <Footer />
     </div>
   );
 }

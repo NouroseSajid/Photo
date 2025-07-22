@@ -21,28 +21,27 @@ const MultiSelectToolbar: React.FC<MultiSelectToolbarProps> = ({
   const { data: session } = useSession();
 
   return (
-    <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+    <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm rounded-2xl" style={{ minHeight: '72px' }}>
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           {!isMultiSelectMode ? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 border border-transparent py-2 min-h-[56px]">
               <button
                 onClick={onStartMultiSelect}
-                className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                className="hidden sm:block group flex items-center gap-2 px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 whitespace-nowrap flex-shrink-0"
               >
-                <svg className="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Select Images
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Select Images
+                </span>
               </button>
-              <div className="text-sm text-gray-500 hidden sm:block">
-                Tip: Long press an image or use this button to start selecting
-              </div>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className={`flex flex-wrap items-center justify-center gap-4 py-2 min-h-[56px] transition-opacity duration-300 ease-in-out ${isMultiSelectMode ? 'opacity-100' : 'opacity-0'}`}>
               {/* Selection counter */}
-              <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg border border-blue-200">
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg border border-blue-200">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -103,18 +102,6 @@ const MultiSelectToolbar: React.FC<MultiSelectToolbarProps> = ({
             </div>
           )}
         </div>
-
-        {/* Quick tips */}
-        {isMultiSelectMode && (
-          <div className="mt-3 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-800 text-sm rounded-full border border-amber-200">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Click images to select/deselect • Hold Shift to select ranges
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

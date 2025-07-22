@@ -13,7 +13,16 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 // Placeholder icon components
-const CheckIcon: React.FC<React.HTMLAttributes<HTMLSpanElement>> = (props) => <span {...props}>✓</span>;
+const CheckIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+const EmptySquareIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+  </svg>
+);
 const XIcon: React.FC<React.HTMLAttributes<HTMLSpanElement>> = (props) => <span {...props}>×</span>;
 
 interface ImageSwiperModalProps {
@@ -81,7 +90,7 @@ const ImageSwiperModal: React.FC<ImageSwiperModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <span className="w-5 h-5">○</span>
+                    <EmptySquareIcon className="w-5 h-5" />
                     <span>Select</span>
                   </>
                 )}
@@ -164,6 +173,7 @@ const ImageSwiperModal: React.FC<ImageSwiperModalProps> = ({
                           height={1000}
                           className="w-auto h-auto max-w-full max-h-full object-contain"
                           priority={idx === activeIndex}
+                          // ...existing code...
                         />
                         {/* Selection checkmark overlay */}
 

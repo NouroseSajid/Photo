@@ -93,7 +93,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
       {/* Drawer Content */}
       <div
         ref={drawerRef}
-        className={`absolute right-0 h-full w-80 bg-white shadow-xl p-6 flex flex-col transform transition-transform duration-300 ease-in-out ${
+        className={`absolute right-0 h-full w-80 bg-gray-50 shadow-xl p-6 flex flex-col transform transition-transform duration-300 ease-in-out overflow-y-auto hide-scrollbar-on-touch text-gray-900 ${
           isVisible ? 'translate-x-0' : 'translate-x-full'
         }`}
         aria-modal="true"

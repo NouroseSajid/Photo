@@ -21,10 +21,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const errors: string[] = [];
 
     for (const imageName of imageNames) {
+      const sanitizedImageName = path.basename(imageName);
       const filesToDelete = [
-        path.join(process.cwd(), 'public', 'images', 'full', imageName),
-        path.join(process.cwd(), 'public', 'images', 'medium', imageName),
-        path.join(process.cwd(), 'public', 'images', 'thumbs', imageName),
+        path.join(process.cwd(), 'public', 'images', 'full', sanitizedImageName),
+        path.join(process.cwd(), 'public', 'images', 'medium', sanitizedImageName),
+        path.join(process.cwd(), 'public', 'images', 'thumbs', sanitizedImageName),
       ];
 
       for (const filePath of filesToDelete) {
@@ -36,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.warn(`File not found, skipping: ${filePath}`);
           } else {
             console.error(`Failed to delete ${filePath}:`, error);
-            errors.push(`Failed to delete ${imageName}: ${typeof error === 'object' && error && 'message' in error ? (error as { message?: string }).message : String(error)}`);
+            errors.push(`Failed to delete ${sanitizedImageName}: ${typeof error === 'object' && error && 'message' in error ? (error as { message?: string }).message : String(error)}`);
           }
         }
       }

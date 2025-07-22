@@ -17,7 +17,6 @@ const geistMono = Geist_Mono({
 
 import { Providers } from "./components/providers";
 import Header from "./components/Header";
-import Footer from "./components/Footer";
 import Drawer from "./components/Drawer";
 import { useState } from 'react';
 
@@ -47,7 +46,6 @@ export default function RootLayout({
         <Providers>
           <Header onToggleDrawer={toggleDrawer} />
           {children}
-          <Footer />
           <Drawer isOpen={isDrawerOpen} onClose={toggleDrawer} />
         </Providers>
       </body>

@@ -1,4 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+// Skeleton placeholder for images
+const ImageSkeleton = () => (
+  <div
+    className="rounded-xl bg-gray-200 animate-pulse"
+    style={{ gridRowEnd: 'span 25', minHeight: '200px', maxHeight: '320px' }}
+  />
+);
+
 import Image from 'next/image';
 import { GalleryImage } from '@/pages/api/images';
 
@@ -11,7 +19,7 @@ interface GalleryGridProps {
   setIsMultiSelectMode: (v: boolean) => void;
 }
 
-const GalleryGrid: React.FC<GalleryGridProps> = ({
+export const GalleryGrid: React.FC<GalleryGridProps> = ({
   images,
   selectedImages,
   isMultiSelectMode,
@@ -19,29 +27,19 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
   onImageClick,
   setIsMultiSelectMode,
 }) => {
-  const MAX_IMAGE_HEIGHT = 300; // Define max height for images in pixels
+  useEffect(() => {
+    const timer = setTimeout(() => {}, 600); // Simulate loading
+    return () => clearTimeout(timer);
+  }, [images]);
+
+  
+
+  // Spinner/placeholder logic can be added here if needed
 
   return (
-    <div className="grid" style={{
-      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-      gridAutoRows: '10px',
-      gap: '8px'
-    }}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 grid-container-with-scrollbar">
+      {images.length === 0 && Array.from({ length: 12 }).map((_, i) => <ImageSkeleton key={i} />)}
       {images.map((img, idx) => {
-        const targetWidth = 200; // The minmax width for grid columns
-        const naturalHeight = img.height; // Original image height
-        const naturalWidth = img.width; // Original image width
-
-        // Calculate height based on targetWidth, then cap it at MAX_IMAGE_HEIGHT
-        let displayHeight = (naturalHeight / naturalWidth) * targetWidth;
-        if (displayHeight > MAX_IMAGE_HEIGHT) {
-          displayHeight = MAX_IMAGE_HEIGHT;
-        }
-
-        const rowSpan = Math.ceil(displayHeight / 10) + 2; // +2 for padding/gap adjustment
-
-        // Removed debug console.log for production cleanliness
-
         const isSelected = selectedImages.includes(img.filename);
         let pressTimer: NodeJS.Timeout | null = null;
 
@@ -55,12 +53,15 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
         };
 
         const handlePressEnd = () => {
-          clearTimeout(pressTimer as NodeJS.Timeout);
+          if (pressTimer) {
+            clearTimeout(pressTimer);
+          }
         };
 
         const handleClick = () => {
           if (isMultiSelectMode) {
             onImageSelect(img.filename);
+            if (navigator.vibrate) navigator.vibrate(20); // light buzz
           } else {
             onImageClick(idx);
           }
@@ -68,86 +69,53 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
         return (
           <div
-            key={idx}
-            className={`relative rounded-lg overflow-hidden transition-all duration-300 ease-in-out transform ${ // Increased duration for smoother transition
-              isSelected ? 'ring-4 ring-blue-500' : 'hover:shadow-lg hover:scale-105' // Added scale effect
+            key={`${img.filename}-${idx}`}
+            className={`group relative rounded-xl overflow-hidden transition-all duration-300 ease-out transform cursor-pointer ${
+              isSelected
+                ? 'ring-4 ring-blue-500 ring-opacity-80 shadow-2xl scale-[1.02]'
+                : 'hover:shadow-xl hover:scale-[1.01] hover:ring-2 hover:ring-gray-300'
             }`}
             onClick={handleClick}
             onMouseDown={handlePressStart}
             onMouseUp={handlePressEnd}
-            onMouseLeave={handlePressEnd}
             onTouchStart={handlePressStart}
             onTouchEnd={handlePressEnd}
-            style={{ gridRowEnd: `span ${rowSpan}` }}
+            style={{
+              minHeight: '280px',
+            }}
           >
-            <div className="relative w-full h-full">
-              <Image
-                src={img.thumbnailUrl}
-                alt={img.filename}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 200px"
-              />
-              {/* Overlay on hover */}
-              <div className="absolute inset-0 bg-black/40 transition-opacity duration-300 flex flex-col items-center justify-center text-white text-center p-2 opacity-0 hover:opacity-100">
-                <p className="text-sm font-semibold break-all mb-2">{img.filename}</p>
-                <div className="flex space-x-4">
-                  {/* Select/Check Icon */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent image click from opening modal
-                      if (!isMultiSelectMode) setIsMultiSelectMode(true);
-                      onImageSelect(img.filename);
-                    }}
-                    className={`bg-white/20 hover:bg-white/40 p-2 rounded-full transition-colors ${isSelected ? 'bg-blue-500' : ''}`}
-                    title={isSelected ? 'Deselect Image' : 'Select Image'}
-                  >
-                    {isSelected ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    )}
-                  </button>
+            {/* Image */}
+            <Image
+              src={img.thumbnailUrl}
+              alt={img.filename}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
+              priority={idx < 12}
+              // ...removed blur placeholder...
+            />
 
-                  {/* Download Icon */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent image click from opening modal
-                      window.location.href = `/api/download?files=${img.filename}`;
-                    }}
-                    className="bg-white/20 hover:bg-white/40 p-2 rounded-full transition-colors"
-                    title="Download Image"
-                  >
-                    <Image src="/icons/Download.svg" alt="Download" width={24} height={24} />
-                  </button>
+            {/* Semi-transparent overlay with folder date */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent" />
 
-                  {/* View Icon */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent image click from opening modal
-                      onImageClick(idx);
-                    }}
-                    className="bg-white/20 hover:bg-white/40 p-2 rounded-full transition-colors"
-                    title="View Image"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </button>
-                </div>
+            {/* New image badge */}
+            {img.isNew && (
+              <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md">
+                New
               </div>
-              {/* Removed redundant checkbox in multi-select mode */}
-            </div>
+            )}
+
+            {/* Selection checkmark */}
+            {isSelected && (
+              <div className="absolute top-3 right-3 bg-blue-500 text-white rounded-full p-2 shadow-lg animate-pulse">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
           </div>
         );
       })}
     </div>
   );
-};
-
-export default GalleryGrid;
+}

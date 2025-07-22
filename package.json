@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm-run-all -p dev-next start-websocket",
     "dev-next": "next dev --turbopack",
-    "start-websocket": "node src/server/websocket-server.js",
+    "start-websocket": "node src/server/index.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
