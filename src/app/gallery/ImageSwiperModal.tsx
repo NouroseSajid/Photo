@@ -29,10 +29,10 @@ interface ImageSwiperModalProps {
   open: boolean;
   images: GalleryImage[];
   selectedImageIndex: number | null;
-  selectedImages: string[];
+  selectedImages: Array<{ filename: string; folder: string; }>;
   isMultiSelectMode: boolean;
   onClose: () => void;
-  onSelect: (filename: string) => void;
+  onSelect: (image: GalleryImage) => void;
   setIsMultiSelectMode: (v: boolean) => void;
   handleDownloadSelected: () => void;
 }
@@ -71,19 +71,19 @@ const ImageSwiperModal: React.FC<ImageSwiperModalProps> = ({
             <div className="flex items-center gap-2">
               <button
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-105 ${
-                  selectedImages.includes(images[activeIndex]?.filename)
+                  selectedImages.some(s => s.filename === images[activeIndex]?.filename && s.folder === images[activeIndex]?.folder)
                     ? 'bg-blue-600 text-white shadow-md'
                     : 'bg-white/90 text-gray-800 hover:bg-white'
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isMultiSelectMode) setIsMultiSelectMode(true);
-                  onSelect(images[activeIndex]?.filename);
+                  onSelect(images[activeIndex]);
                 }}
-                title={selectedImages.includes(images[activeIndex]?.filename) ? 'Deselect' : 'Select'}
-                aria-label={selectedImages.includes(images[activeIndex]?.filename) ? 'Deselect Image' : 'Select Image'}
+                title={selectedImages.some(s => s.filename === images[activeIndex]?.filename && s.folder === images[activeIndex]?.folder) ? 'Deselect' : 'Select'}
+                aria-label={selectedImages.some(s => s.filename === images[activeIndex]?.filename && s.folder === images[activeIndex]?.folder) ? 'Deselect Image' : 'Select Image'}
               >
-                {selectedImages.includes(images[activeIndex]?.filename) ? (
+                {selectedImages.some(s => s.filename === images[activeIndex]?.filename && s.folder === images[activeIndex]?.folder) ? (
                   <>
                     <CheckIcon className="w-5 h-5" />
                     <span>Selected</span>

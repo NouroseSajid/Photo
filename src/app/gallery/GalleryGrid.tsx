@@ -12,9 +12,9 @@ import { GalleryImage } from '@/pages/api/images';
 
 interface GalleryGridProps {
   images: GalleryImage[];
-  selectedImages: string[];
+  selectedImages: Array<{ filename: string; folder: string; }>;
   isMultiSelectMode: boolean;
-  onImageSelect: (filename: string) => void;
+  onImageSelect: (image: { filename: string; folder: string; }) => void;
   onImageClick: (idx: number) => void;
   setIsMultiSelectMode: (v: boolean) => void;
 }
@@ -40,14 +40,14 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 grid-container-with-scrollbar">
       {images.length === 0 && Array.from({ length: 12 }).map((_, i) => <ImageSkeleton key={i} />)}
       {images.map((img, idx) => {
-        const isSelected = selectedImages.includes(img.filename);
+        const isSelected = selectedImages.some(s => s.filename === img.filename && s.folder === img.folder);
         let pressTimer: NodeJS.Timeout | null = null;
 
         const handlePressStart = () => {
           pressTimer = setTimeout(() => {
             if (!isMultiSelectMode) {
               setIsMultiSelectMode(true);
-              onImageSelect(img.filename);
+              onImageSelect(img);
             }
           }, 500);
         };
@@ -60,7 +60,7 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
 
         const handleClick = () => {
           if (isMultiSelectMode) {
-            onImageSelect(img.filename);
+            onImageSelect(img);
             if (navigator.vibrate) navigator.vibrate(20); // light buzz
           } else {
             onImageClick(idx);

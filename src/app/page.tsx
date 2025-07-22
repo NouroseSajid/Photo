@@ -57,7 +57,7 @@ import toast, { Toaster } from 'react-hot-toast';
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<Array<{ filename: string; folder: string; }>>([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [showRefreshBanner] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -97,18 +97,18 @@ export default function GalleryPage() {
     fetchImages(0, e.target.value);
   };
 
-  const handleImageSelect = (filename: string) => {
+  const handleImageSelect = (image: { filename: string; folder: string; }) => {
     setSelectedImages((prevSelected) =>
-      prevSelected.includes(filename)
-        ? prevSelected.filter((name) => name !== filename)
-        : [...prevSelected, filename]
+      prevSelected.some(s => s.filename === image.filename && s.folder === image.folder)
+        ? prevSelected.filter((s) => !(s.filename === image.filename && s.folder === image.folder))
+        : [...prevSelected, image]
     );
   };
 
   const handleDownloadSelected = () => {
     if (selectedImages.length === 0) return toast.error('No images selected');
     toast.loading('Building ZIP…', { id: 'zip' });
-    window.location.href = `/api/download?files=${selectedImages.join(',')}`;
+    window.location.href = `/api/download?files=${selectedImages.map(img => img.filename).join(',')}`;
     setTimeout(() => toast.dismiss('zip'), 2000);
   };
 
@@ -126,7 +126,7 @@ export default function GalleryPage() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ imageNames: selectedImages }),
+      body: JSON.stringify({ imageNames: selectedImages.map(img => ({ filename: img.filename, folder: img.folder })) }),
     });
 
     if (res.ok) {
@@ -146,7 +146,7 @@ export default function GalleryPage() {
       if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         setIsMultiSelectMode(true);
-        setSelectedImages(images.map(i => i.filename));
+        setSelectedImages(images.map(i => ({ filename: i.filename, folder: i.folder })));
       }
       if (e.key === 'Escape') {
         setIsMultiSelectMode(false);
