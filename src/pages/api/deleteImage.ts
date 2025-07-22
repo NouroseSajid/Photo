@@ -20,12 +20,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const errors: string[] = [];
 
-    for (const imageName of imageNames) {
-      const sanitizedImageName = path.basename(imageName);
+    for (const image of imageNames) {
+      const sanitizedImageName = path.basename(image.filename);
+      const imageFolder = image.folder;
       const filesToDelete = [
-        path.join(process.cwd(), 'public', 'images', 'full', sanitizedImageName),
-        path.join(process.cwd(), 'public', 'images', 'medium', sanitizedImageName),
-        path.join(process.cwd(), 'public', 'images', 'thumbs', sanitizedImageName),
+        path.join(process.cwd(), 'public', 'images', 'full', imageFolder, sanitizedImageName),
+        path.join(process.cwd(), 'public', 'images', 'medium', imageFolder, sanitizedImageName),
+        path.join(process.cwd(), 'public', 'images', 'thumbs', imageFolder, sanitizedImageName),
       ];
 
       for (const filePath of filesToDelete) {
