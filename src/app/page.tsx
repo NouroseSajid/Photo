@@ -52,6 +52,7 @@ import { GalleryGrid } from './gallery/GalleryGrid';
 import MultiSelectToolbar from './gallery/MultiSelectToolbar';
 import RefreshBanner from './gallery/RefreshBanner';
 import ConfirmationModal from './components/ConfirmationModal'; // Re-using the modal
+import RenameFolderModal from './components/RenameFolderModal';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function GalleryPage() {
@@ -61,6 +62,8 @@ export default function GalleryPage() {
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [showRefreshBanner] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [folderToRename, setFolderToRename] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [folders, setFolders] = useState<string[]>([]);
@@ -141,6 +144,43 @@ export default function GalleryPage() {
     setIsDeleteModalOpen(false);
   };
 
+  const handleRenameFolder = async (oldName: string, newName: string) => {
+    if (!oldName || !newName) return;
+    toast.loading('Renaming folder…', { id: 'rename' });
+    try {
+      const res = await fetch('/api/renameFolder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ oldFolderName: oldName, newFolderName: newName }),
+      });
+
+      if (res.ok) {
+        toast.success('Folder renamed successfully!', { id: 'rename' });
+        fetchFolders(); // Refresh folders list
+        fetchImages(0, newName); // Refresh images in the new folder
+        setSelectedFolder(newName); // Update selected folder
+      } else {
+        const errorData = await res.json();
+        toast.error(`Failed to rename folder: ${errorData.error || 'Unknown error'}`, { id: 'rename' });
+      }
+    } catch (error) {
+      toast.error(`An error occurred: ${error instanceof Error ? error.message : String(error)}`, { id: 'rename' });
+    }
+    setIsRenameModalOpen(false);
+    setFolderToRename(null);
+  };
+
+  const handleOpenRenameModal = () => {
+    if (selectedFolder) {
+      setFolderToRename(selectedFolder);
+      setIsRenameModalOpen(true);
+    } else {
+      toast.error('Please select a folder to rename.');
+    }
+  };
+
   // Keyboard shortcuts for multi-select and deselect
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -201,6 +241,7 @@ export default function GalleryPage() {
           }}
           onDownload={handleDownloadSelected}
           onDelete={handleDeleteSelected}
+          onRenameFolder={handleOpenRenameModal}
         />
         <div className="flex items-center pr-4">
           <select onChange={handleFolderChange} value={selectedFolder || ''} className="border rounded p-2 text-gray-900 bg-white">
@@ -255,6 +296,13 @@ export default function GalleryPage() {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
         message={`Are you sure you want to delete ${selectedImages.length} image(s)?`}
+      />
+
+      <RenameFolderModal
+        isOpen={isRenameModalOpen}
+        onClose={() => setIsRenameModalOpen(false)}
+        onConfirm={handleRenameFolder}
+        oldFolderName={folderToRename}
       />
 
       {/* FOOTER ONLY ON THIS PAGE */}

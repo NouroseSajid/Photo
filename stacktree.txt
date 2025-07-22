@@ -1,1 +1,28 @@
-No new errors reported in stacktree.txt after the last fix.
+[0]  GET /api/auth/session 200 in 18ms
+[0]  GET /api/auth/session 200 in 8ms
+[0]  GET /api/folders 304 in 126ms
+[0]  ⨯ TypeError: The "path" argument must be of type string. Received an instance of Object
+[0]     at handler (src/pages/api/deleteImage.ts:24:38)
+[0]   22 |
+[0]   23 |     for (const imageName of imageNames) {
+[0] > 24 |       const sanitizedImageName = path.basename(imageName);
+[0]      |                                      ^
+[0]   25 |       const filesToDelete = [
+[0]   26 |         path.join(process.cwd(), 'public', 'images', 'full', sanitizedImageName),
+[0]   27 |         path.join(process.cwd(), 'public', 'images', 'medium', sanitizedImageName), {
+[0]   code: 'ERR_INVALID_ARG_TYPE',
+[0]   page: '/api/deleteImage'
+[0] }
+[0]  ⨯ TypeError: The "path" argument must be of type string. Received an instance of Object
+[0]     at handler (src/pages/api/deleteImage.ts:24:38)
+[0]   22 |
+[0]   23 |     for (const imageName of imageNames) {
+[0] > 24 |       const sanitizedImageName = path.basename(imageName);
+[0]      |                                      ^
+[0]   25 |       const filesToDelete = [
+[0]   26 |         path.join(process.cwd(), 'public', 'images', 'full', sanitizedImageName),
+[0]   27 |         path.join(process.cwd(), 'public', 'images', 'medium', sanitizedImageName), {
+[0]   code: 'ERR_INVALID_ARG_TYPE',
+[0]   page: '/api/deleteImage'
+[0] }
+[0]  DELETE /api/deleteImage 500 in 116ms
