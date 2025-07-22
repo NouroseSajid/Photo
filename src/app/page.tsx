@@ -282,9 +282,10 @@ export default function GalleryPage() {
           onDownload={handleDownloadSelected}
           onDelete={handleDeleteSelected}
           onRenameFolder={handleOpenRenameModal}
+          onMoveImages={handleOpenMoveModal}
         />
-        <div className="flex items-center pr-4">
-          <select onChange={handleFolderChange} value={selectedFolder || ''} className="border rounded p-2 text-gray-900 bg-white">
+        <div className="flex items-center pr-4 ml-auto">
+          <select onChange={handleFolderChange} value={selectedFolder || ''} className="border border-gray-300 rounded-md p-2 text-gray-900 bg-white shadow-sm focus:ring-blue-500 focus:border-blue-500 min-w-max">
             <option value="">All Folders</option>
             {folders.length === 0 && (
               <option disabled>No folders found</option>

@@ -35,12 +35,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await fs.access(oldPath);
         await fs.rename(oldPath, newPath);
         console.log(`Successfully renamed ${oldPath} to ${newPath}`);
-      } catch (error: any) {
-        if (error.code === 'ENOENT') {
+      } catch (error: unknown) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
           console.warn(`Folder ${oldPath} not found for type ${type}, skipping rename.`);
         } else {
           console.error(`Failed to rename folder ${oldPath} to ${newPath}:`, error);
-          errors.push(`Failed to rename ${oldFolderName} in ${type}: ${error.message}`);
+          errors.push(`Failed to rename ${oldFolderName} in ${type}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
     }
