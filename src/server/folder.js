@@ -3,10 +3,8 @@ import path from 'path';
 import fs from 'fs/promises';
 import { ensureDir, fullDir, thumbDir, mediumDir, isImage } from './utils.js';
 
-export const folderName = () => {
-  const d = new Date();
-  const pad = (n) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const generateHexFolderName = (number) => {
+  return number.toString(16).padStart(6, '0');
 };
 
 let _lock = false;
@@ -20,12 +18,11 @@ export async function resolveTargetFolder() {
   _lock = true;
 
   try {
-    const baseName = folderName();
     const dirs = await fs.readdir(fullDir).catch(() => []);
     const candidates = [];
 
     for (const d of dirs) {
-      const match = d.match(new RegExp(`^${baseName}(?:-(\d+))?$`));
+      const match = d.match(/^([0-9a-fA-F]{6})$/); // Match 6-character hex folder names
       if (match) {
         const p = path.join(fullDir, d);
         const st = await fs.stat(p).catch(() => null);
@@ -33,13 +30,13 @@ export async function resolveTargetFolder() {
           candidates.push({
             name: d,
             mtime: st.mtime,
-            suffix: match[1] ? parseInt(match[1], 10) : 0,
+            hexValue: parseInt(d, 16), // Store the integer value of the hex name
           });
         }
       }
     }
 
-    candidates.sort((a, b) => b.suffix - a.suffix || b.mtime - a.mtime);
+    candidates.sort((a, b) => b.hexValue - a.hexValue || b.mtime - a.mtime);
 
     let targetFolder;
     if (candidates.length > 0) {
@@ -48,11 +45,11 @@ export async function resolveTargetFolder() {
       if (filesInNewest.filter((f) => isImage(f)).length < 100) {
         targetFolder = newest.name;
       } else {
-        const nextSuffix = newest.suffix + 1;
-        targetFolder = `${baseName}-${nextSuffix}`;
+        const nextHexValue = newest.hexValue + 1;
+        targetFolder = generateHexFolderName(nextHexValue);
       }
     } else {
-      targetFolder = baseName;
+      targetFolder = generateHexFolderName(0); // Start with 000000 if no folders exist
     }
 
     await Promise.all([

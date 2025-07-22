@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getSession } from 'next-auth/react';
 
 async function renameFolder(req: NextApiRequest, res: NextApiResponse) {
   const { oldName, newName } = req.body;
@@ -23,7 +24,12 @@ async function renameFolder(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getSession({ req });
+
   if (req.method === 'POST') {
+    if (!session || !session.user.isAdmin) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     return await renameFolder(req, res);
   }
 
@@ -50,6 +56,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return bTime - aTime;
       })
       .map((f) => f.name);
+
+    if (!folders || folders.length === 0) {
+      // Fail-safe: log the directory contents and return a helpful message
+      const dirContents = await fs.readdir(base);
+      console.warn('No folders found in', base, 'Directory contents:', dirContents);
+      return res.status(200).json({ folders: [], message: 'No folders found. Check directory structure and permissions.' });
+    }
 
     res.status(200).json({ folders });
   } catch (error) {

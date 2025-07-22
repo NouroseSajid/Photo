@@ -18,7 +18,7 @@ export default function Header({ onToggleDrawer }: HeaderProps) {
         <div className="flex items-center space-x-4">
           <Link href="/" className="group flex items-center hover:scale-105 transition-transform duration-200" title="Home">
             <div className="relative p-2 rounded-lg bg-white group-hover:bg-gray-100 transition-all duration-200">
-              <Image src="/icons/Logo.svg" alt="Logo" width={32} height={32} />
+              <Image src="/icons/Logo.svg" alt="Logo" width={32} height={32} style={{ width: 32, height: 32 }} />
             </div>
             <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
               Nourose

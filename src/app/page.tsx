@@ -204,6 +204,9 @@ export default function GalleryPage() {
         <div className="flex items-center pr-4">
           <select onChange={handleFolderChange} value={selectedFolder || ''} className="border rounded p-2 text-gray-900 bg-white">
             <option value="">All Folders</option>
+            {folders.length === 0 && (
+              <option disabled>No folders found</option>
+            )}
             {folders.map(folder => (
               <option key={folder} value={folder}>{folder}</option>
             ))}
