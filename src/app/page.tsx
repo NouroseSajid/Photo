@@ -53,6 +53,7 @@ import MultiSelectToolbar from './gallery/MultiSelectToolbar';
 import RefreshBanner from './gallery/RefreshBanner';
 import ConfirmationModal from './components/ConfirmationModal'; // Re-using the modal
 import RenameFolderModal from './components/RenameFolderModal';
+import MoveImagesModal from './components/MoveImagesModal';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function GalleryPage() {
@@ -64,6 +65,7 @@ export default function GalleryPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [folderToRename, setFolderToRename] = useState<string | null>(null);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [folders, setFolders] = useState<string[]>([]);
@@ -179,6 +181,44 @@ export default function GalleryPage() {
     } else {
       toast.error('Please select a folder to rename.');
     }
+  };
+
+  const handleMoveImages = async (targetFolder: string) => {
+    if (selectedImages.length === 0) {
+      toast.error('Please select images to move.');
+      return;
+    }
+    toast.loading(`Moving ${selectedImages.length} image(s) to ${targetFolder}…`, { id: 'move' });
+    try {
+      const res = await fetch('/api/moveImages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageNames: selectedImages, targetFolder }),
+      });
+
+      if (res.ok) {
+        toast.success('Images moved successfully!', { id: 'move' });
+        fetchImages(0, selectedFolder); // Refresh current folder
+        setSelectedImages([]);
+        setIsMultiSelectMode(false);
+      } else {
+        const errorData = await res.json();
+        toast.error(`Failed to move images: ${errorData.error || 'Unknown error'}`, { id: 'move' });
+      }
+    } catch (error) {
+      toast.error(`An error occurred: ${error instanceof Error ? error.message : String(error)}`, { id: 'move' });
+    }
+    setIsMoveModalOpen(false);
+  };
+
+  const handleOpenMoveModal = () => {
+    if (selectedImages.length === 0) {
+      toast.error('Please select images to move.');
+      return;
+    }
+    setIsMoveModalOpen(true);
   };
 
   // Keyboard shortcuts for multi-select and deselect
@@ -303,6 +343,14 @@ export default function GalleryPage() {
         onClose={() => setIsRenameModalOpen(false)}
         onConfirm={handleRenameFolder}
         oldFolderName={folderToRename}
+      />
+
+      <MoveImagesModal
+        isOpen={isMoveModalOpen}
+        onClose={() => setIsMoveModalOpen(false)}
+        onConfirm={handleMoveImages}
+        folders={folders}
+        selectedImagesCount={selectedImages.length}
       />
 
       {/* FOOTER ONLY ON THIS PAGE */}
