@@ -2,12 +2,13 @@
 // UI constants
 const DOWNLOAD_ICON = '/icons/Download.svg';
 
-import { GalleryImage } from '@/pages/api/images';
+import { GalleryMedia } from '@/pages/api/images';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Dialog } from '@headlessui/react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
+import ReactPlayer from 'react-player/lazy';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -27,12 +28,12 @@ const XIcon: React.FC<React.HTMLAttributes<HTMLSpanElement>> = (props) => <span 
 
 interface ImageSwiperModalProps {
   open: boolean;
-  images: GalleryImage[];
+  images: GalleryMedia[];
   selectedImageIndex: number | null;
   selectedImages: Array<{ filename: string; folder: string; }>;
   isMultiSelectMode: boolean;
   onClose: () => void;
-  onSelect: (image: GalleryImage) => void;
+  onSelect: (image: GalleryMedia) => void;
   setIsMultiSelectMode: (v: boolean) => void;
   handleDownloadSelected: () => void;
 }
@@ -169,15 +170,26 @@ const ImageSwiperModal: React.FC<ImageSwiperModalProps> = ({
                     <div className="relative flex flex-col items-center justify-center h-full w-full">
                       {/* Image and selection overlay */}
                       <div className="flex items-center justify-center flex-grow w-full h-full relative">
-                        <Image
-                          src={img.mediumUrl}
-                          alt={img.filename}
-                          width={1600}
-                          height={1000}
-                          className="w-auto h-auto max-w-full max-h-full object-contain"
-                          priority={idx === activeIndex}
-                          // ...existing code...
-                        />
+                        {img.mediaType === 'video' ? (
+                          <ReactPlayer
+                            url={img.fullUrl}
+                            controls
+                            playing={idx === activeIndex}
+                            width="100%"
+                            height="100%"
+                            style={{ maxWidth: '100%', maxHeight: '100%' }}
+                          />
+                        ) : (
+                          <Image
+                            src={img.mediumUrl}
+                            alt={img.filename}
+                            width={1600}
+                            height={1000}
+                            className="w-auto h-auto max-w-full max-h-full object-contain"
+                            priority={idx === activeIndex}
+                            // ...existing code...
+                          />
+                        )}
                         {/* Selection checkmark overlay */}
 
                       </div>

@@ -2,6 +2,20 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Prerequisites
+
+Before running the application, you need to have `ffmpeg` installed on your system. `ffmpeg` is used to generate thumbnails for videos.
+
+- **On macOS:** You can install `ffmpeg` using [Homebrew](https://brew.sh/):
+  ```bash
+  brew install ffmpeg
+  ```
+- **On Windows:** You can download a pre-built version of `ffmpeg` from the [official website](https://ffmpeg.org/download.html) and add it to your system's PATH.
+- **On Linux:** You can install `ffmpeg` using your distribution's package manager. For example, on Ubuntu/Debian:
+  ```bash
+  sudo apt-get install ffmpeg
+  ```
+
 First, run the development server:
 
 ```bash

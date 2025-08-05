@@ -1,9 +1,10 @@
-// Image processing logic
+"""// Image processing logic
 import path from 'path';
 import sharp from 'sharp';
 import fs from 'fs/promises';
+import ffmpeg from 'fluent-ffmpeg';
 import { CONFIG } from './config.js';
-import { ensureDir, thumbDir, mediumDir } from './utils.js';
+import { ensureDir, thumbDir, mediumDir, clipsThumbDir, clipsMediumDir, isVideo } from './utils.js';
 import { addLog } from '../shared/logStore.js';
 
 
@@ -43,10 +44,26 @@ export class ImageProcessor {
     });
   }
 
-  async processImage(fullPath, filename) {
+  async generateVideoThumbnail(input, output, width) {
+    await ensureDir(path.dirname(output));
+    return new Promise((resolve, reject) => {
+      ffmpeg(input)
+        .on('end', () => resolve())
+        .on('error', (err) => reject(new Error(`FFMPEG failed: ${err.message}`)))
+        .screenshots({
+          timestamps: ['50%'],
+          filename: path.basename(output),
+          folder: path.dirname(output),
+          size: `${width}x?`,
+        });
+    });
+  }
+
+  async processMedia(fullPath, filename) {
     const folder = path.basename(path.dirname(fullPath));
-    const thumb = path.join(thumbDir, folder, filename);
-    const medium = path.join(mediumDir, folder, filename);
+    const isVid = isVideo(filename);
+    const thumb = isVid ? path.join(clipsThumbDir, folder, `${path.parse(filename).name}.png`) : path.join(thumbDir, folder, filename);
+    const medium = isVid ? path.join(clipsMediumDir, folder, `${path.parse(filename).name}.png`) : path.join(mediumDir, folder, filename);
     let changed = false;
 
     const stats = await fs.stat(fullPath).catch(() => null);
@@ -57,13 +74,21 @@ export class ImageProcessor {
     // Ensure thumbnail exists
     if (!(await fs.stat(thumb).catch(() => null))) {
       console.log(`Generating thumbnail for ${filename} at ${thumb}`);
-      await this.generateImage(fullPath, thumb, CONFIG.THUMBNAIL_WIDTH);
+      if (isVid) {
+        await this.generateVideoThumbnail(fullPath, thumb, CONFIG.THUMBNAIL_WIDTH);
+      } else {
+        await this.generateImage(fullPath, thumb, CONFIG.THUMBNAIL_WIDTH);
+      }
       changed = true;
     }
 
     if (!(await fs.stat(medium).catch(() => null))) {
       console.log(`Generating medium image for ${filename} at ${medium}`);
-      await this.generateImage(fullPath, medium, CONFIG.MEDIUM_WIDTH);
+      if (isVid) {
+        await this.generateVideoThumbnail(fullPath, medium, CONFIG.MEDIUM_WIDTH);
+      } else {
+        await this.generateImage(fullPath, medium, CONFIG.MEDIUM_WIDTH);
+      }
       changed = true;
     }
     return changed;
@@ -73,7 +98,7 @@ export class ImageProcessor {
     return new Promise((resolve) => {
       this.queue.push(async () => {
         try {
-          const res = await this.processImage(src, filename);
+          const res = await this.processMedia(src, filename);
           resolve(res);
         } finally {
           this.active--;
@@ -92,3 +117,4 @@ export class ImageProcessor {
     }
   }
 }
+""
